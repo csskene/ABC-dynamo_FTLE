@@ -42,6 +42,8 @@ resl     = int(args['--resl'])
 nev      = int(args['--nev'])
 tol      = float(args['--tol'])
 
+fileName = "eigsHydroRe{0:5.02e}_eps{1:5.02e}_Om{2:5.02e}_dt{3:5.02e}_resl{4:d}".format(Re, epsilon, Ω,timestep,resl)
+
 Lx, Ly, Lz = (2*π,2*π,2*π)
 nx, ny, nz = (resl,resl,resl)
 
@@ -153,6 +155,5 @@ mu, v = sp.linalg.eigs(Psi,k=nev,tol=tol)
 comm.barrier()
 if(rank==0):
     print(mu)
-    fileName = "eigsHydroRe{0:5.02e}_eps{1:5.02e}_Om{2:5.02e}_dt{3:5.02e}_resl{4:5.02d}".format(Re, epsilon, Ω,timestep,resl)
     np.savez(fileName,eigs=mu,modes=v)
     np.savez(fileName+'_eigsOnly',eigs=mu)

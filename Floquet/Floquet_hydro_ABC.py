@@ -44,6 +44,14 @@ tol      = float(args['--tol'])
 
 fileName = "eigsHydroRe{0:5.02e}_eps{1:5.02e}_Om{2:5.02e}_dt{3:5.02e}_resl{4:d}".format(Re, epsilon, Ω,timestep,resl)
 
+if(rank==0):
+    print('Requested timestep =',timestep)
+T = 2*np.pi/Ω
+N = int(T/timestep)
+timestep = T/N
+if(rank==0):
+    print('Adjusted timestep =',timestep)
+
 Lx, Ly, Lz = (2*π,2*π,2*π)
 nx, ny, nz = (resl,resl,resl)
 

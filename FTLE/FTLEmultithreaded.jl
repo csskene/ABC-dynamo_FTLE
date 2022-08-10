@@ -47,9 +47,6 @@ function rhsBig(y,p,t)
 end
 
 @time begin
-Nx = 128
-Ny = 128
-Nt = 2
 T = 30
 x = range(0,stop=2π,length=Nx)
 y = range(0,stop=2π,length=Ny)

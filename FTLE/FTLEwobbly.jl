@@ -2,7 +2,7 @@ using DifferentialEquations
 using LinearAlgebra
 using FileIO
 
-if length(ARGS)==3
+if length(ARGS)>=3
     Nx = parse(Int64,ARGS[1])
     Ny = parse(Int64,ARGS[2])
     Nt = parse(Int64,ARGS[3])

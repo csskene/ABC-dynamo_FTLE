@@ -1,8 +1,6 @@
 using DifferentialEquations
 using LinearAlgebra
 using FileIO
-using Distributed
-using SharedArrays
 
 if length(ARGS)>=3
     Nx = parse(Int64,ARGS[1])
@@ -20,7 +18,7 @@ else
     println("Using default frequency")
     om = 1
 end
-# println("Number of threads = ",Threads.nthreads())
+println("Number of threads = ",Threads.nthreads())
 println("Nx = ",Nx)
 println("Ny = ",Ny)
 println("Nt = ",Nt)
@@ -55,35 +53,34 @@ function rhsBig(y,p,t)
 end
 
 @time begin
-    T = 30
-    x = range(0,stop=2π,length=Nx)
-    y = range(0,stop=2π,length=Ny)
-    t = range(0,stop=2π/om,length=Nt+1)
-    t = t[1:end-1]
-    # L = zeros((Nx,Ny,Nt))
-    L = SharedArray{Float64}((Nx,Ny,Nt))
-    @distributed for ijk in CartesianIndices(L)
-        i = ijk[1]
-        j = ijk[2]
-        k = ijk[3]
+T = 30
+x = range(0,stop=2π,length=Nx)
+y = range(0,stop=2π,length=Ny)
+t = range(0,stop=2π/om,length=Nt+1)
+t = t[1:end-1]
+L = zeros((Nx,Ny,Nt))
+Threads.@threads for ijk in CartesianIndices(L)
+    i = ijk[1]
+    j = ijk[2]
+    k = ijk[3]
 
-        x0 = x[i]
-        y0 = y[j]
+    x0 = x[i]
+    y0 = y[j]
 
-        init = vcat([x0,y0,0], reshape(J,(9,)))
-        tspan = (t[k],t[k]+T)
-        prob = ODEProblem(rhsBig,init,tspan,save_everystep=true)
-        sol = solve(prob, Tsit5())
-        jacs = reshape(sol[4:end,:],(3,3,length(sol[1,:])))
-        C = zeros(length(sol[1,:]))
-        for b in 1:length(sol[1,:])
-            C[b] = tr(transpose(jacs[:,:,b])*jacs[:,:,b])
-            C[b] = log(C[b]/2)/2
-        end
-        X = hcat(ones(length(sol.t)),sol.t)
-        intercept,slope = inv(X'*X)*(X'*C)
-        L[i,j,k] = slope
+    init = vcat([x0,y0,0], reshape(J,(9,)))
+    tspan = (t[k],t[k]+T)
+    prob = ODEProblem(rhsBig,init,tspan,save_everystep=true)
+    sol = solve(prob, Tsit5())
+    jacs = reshape(sol[4:end,:],(3,3,length(sol[1,:])))
+    C = zeros(length(sol[1,:]))
+    for b in 1:length(sol[1,:])
+        C[b] = tr(transpose(jacs[:,:,b])*jacs[:,:,b])
+        C[b] = log(C[b]/2)/2
     end
+    X = hcat(ones(length(sol.t)),sol.t)
+    intercept,slope = inv(X'*X)*(X'*C)
+    L[i,j,k] = slope
+end
 end
 
 save("FTLEwobbly_Om_$om.jld2", "FTLE",L)

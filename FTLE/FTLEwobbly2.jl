@@ -2,7 +2,7 @@ using FileIO
 using Distributed
 
 @everywhere include("ABC.jl");
-
+@everywhere using SparseArrays
 if length(ARGS)>=3
     Nx = parse(Int64,ARGS[1])
     Ny = parse(Int64,ARGS[2])
@@ -31,19 +31,20 @@ y = range(0,stop=2π,length=Ny)
 t = range(0,stop=2π/om,length=Nt+1)
 t = t[1:end-1]
 Ls = zeros((Nx,Ny,Nt))
-@time begin
-    Ls = @distributed (+) for ijk in CartesianIndices(Ls)
-        Ltmp = zeros((Nx,Ny,Nt))
-        i = ijk[1]
-        j = ijk[2]
-        k = ijk[3]
+for k in 1:Nt
+    println("k = ",k)
+    Lxy = @distributed (+) for ij in CartesianIndices(Ls[:,:,k])
+        Lxy = spzeros((Nx,Ny))
+        i = ij[1]
+        j = ij[2]
 
         x0 = x[i]
         y0 = y[j]
 
-        Ltmp[i,j,k] = calcFTLE(x0,y0,t[k],om,epsi)
-        Ltmp
+        Lxy[i,j] = calcFTLE(x0,y0,t[k],om,epsi)
+        Lxy
     end
+    Ls[:,:,k] = Lxy
 end
 
 # Ls[:,:,:] = Ltmp[:,:,:]

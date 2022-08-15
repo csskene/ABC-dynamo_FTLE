@@ -34,15 +34,15 @@ Ls = zeros((Nx,Ny,Nt))
 for k in 1:Nt
     println("k = ",k)
     Lxy = @distributed (+) for ij in CartesianIndices(Ls[:,:,k])
-        Lxy = spzeros((Nx,Ny))
+        Lxytmp = spzeros((Nx,Ny))
         i = ij[1]
         j = ij[2]
 
         x0 = x[i]
         y0 = y[j]
 
-        Lxy[i,j] = calcFTLE(x0,y0,t[k],om,epsi)
-        Lxy
+        Lxytmp[i,j] = calcFTLE(x0,y0,t[k],om,epsi)
+        Lxytmp
     end
     Ls[:,:,k] = Lxy
 end

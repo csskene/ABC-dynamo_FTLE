@@ -1,6 +1,6 @@
 using FileIO
 using Distributed
-using SharedArrays
+
 @everywhere include("ABC.jl");
 
 if length(ARGS)>=3
@@ -31,9 +31,9 @@ y = range(0,stop=2π,length=Ny)
 t = range(0,stop=2π/om,length=Nt+1)
 t = t[1:end-1]
 Ls = zeros((Nx,Ny,Nt))
-L = SharedArray{Float64}((Nx,Ny,Nt))
 @time begin
-    @sync @distributed for ijk in CartesianIndices(Ls)
+    Ls = @distributed (+) for ijk in CartesianIndices(Ls)
+        Ltmp = zeros((Nx,Ny,Nt))
         i = ijk[1]
         j = ijk[2]
         k = ijk[3]
@@ -41,9 +41,10 @@ L = SharedArray{Float64}((Nx,Ny,Nt))
         x0 = x[i]
         y0 = y[j]
 
-        L[i,j,k] = calcFTLE(x0,y0,t[k],om,epsi)
+        Ltmp[i,j,k] = calcFTLE(x0,y0,t[k],om,epsi)
+        Ltmp
     end
 end
 
-Ls[:,:,:] = L[:,:,:]
+# Ls[:,:,:] = Ltmp[:,:,:]
 save("FTLEwobbly_Om_$om.jld2", "FTLE",Ls)

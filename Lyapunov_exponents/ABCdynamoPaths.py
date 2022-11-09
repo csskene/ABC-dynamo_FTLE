@@ -87,7 +87,13 @@ y_basis = de.Fourier('y',ny, interval=(0, Ly), dealias=3/2)
 z_basis = de.Fourier('z',nz, interval=(0, Lz), dealias=3/2)
 domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64,mesh=mesh)
 
-problem = de.IVP(domain, variables=['u','v','w','Ax','Ay','Az','p','phi'])
+if(U1):
+    logger.info('Purely hydro simulation')
+    problem = de.IVP(domain, variables=['u','v','w','p'])
+else:
+    logger.info('MHD simulation')
+    problem = de.IVP(domain, variables=['u','v','w','Ax','Ay','Az','p','phi'])
+
 problem.parameters['ReInv'] = 1./Reynolds
 problem.parameters['RmInv'] = 1./Rm
 problem.parameters['eps'] = eps
@@ -99,26 +105,38 @@ problem.substitutions['Fx'] = "eps*Ω*cos(Ω*t)*(cos(z + eps*sin(Ω*t)) - sin(y 
 problem.substitutions['Fy'] = "eps*Ω*cos(Ω*t)*(cos(x + eps*sin(Ω*t)) - sin(z + eps*sin(Ω*t))) + ReInv*(sin(x + eps*sin(Ω*t)) + cos(z + eps*sin(Ω*t)))"
 problem.substitutions['Fz'] = "eps*Ω*cos(Ω*t)*(cos(y + eps*sin(Ω*t)) - sin(x + eps*sin(Ω*t))) + ReInv*(sin(y + eps*sin(Ω*t)) + cos(x + eps*sin(Ω*t)))"
 
-problem.substitutions['Bx'] = " dy(Az) - dz(Ay)"
-problem.substitutions['By'] = "-dx(Az) + dz(Ax)"
-problem.substitutions['Bz'] = " dx(Ay) - dy(Ax)"
+if(not U1):
+    problem.substitutions['Bx'] = " dy(Az) - dz(Ay)"
+    problem.substitutions['By'] = "-dx(Az) + dz(Ax)"
+    problem.substitutions['Bz'] = " dx(Ay) - dy(Ax)"
 
-problem.substitutions['Jx'] = "dy(Bz) - dz(By)"
-problem.substitutions['Jy'] = "dz(Bx) - dx(Bz)"
-problem.substitutions['Jz'] = "dx(By) - dy(Bx)"
+    problem.substitutions['Jx'] = "dy(Bz) - dz(By)"
+    problem.substitutions['Jy'] = "dz(Bx) - dx(Bz)"
+    problem.substitutions['Jz'] = "dx(By) - dy(Bx)"
+
+if(U1):
+    problem.substitutions['Lorentz_x'] = "0"
+    problem.substitutions['Lorentz_y'] = "0"
+    problem.substitutions['Lorentz_z'] = "0"
+else:
+    problem.substitutions['Lorentz_x'] = "Jy*Bz - Jz*By"
+    problem.substitutions['Lorentz_y'] = "Jz*Bx - Jx*Bz"
+    problem.substitutions['Lorentz_z'] = "Jx*By - Jy*Bx"
 
 # Hydrodynamic
-problem.add_equation("dt(u) - ReInv*Lap(u) + dx(p) =  - ad(u) + Fx + Jy*Bz - Jz*By")
-problem.add_equation("dt(v) - ReInv*Lap(v) + dy(p) =  - ad(v) + Fy + Jz*Bx - Jx*Bz")
-problem.add_equation("dt(w) - ReInv*Lap(w) + dz(p) =  - ad(w) + Fz + Jx*By - Jy*Bx")
+problem.add_equation("dt(u) - ReInv*Lap(u) + dx(p) =  - ad(u) + Fx + Lorentz_x")
+problem.add_equation("dt(v) - ReInv*Lap(v) + dy(p) =  - ad(v) + Fy + Lorentz_y")
+problem.add_equation("dt(w) - ReInv*Lap(w) + dz(p) =  - ad(w) + Fz + Lorentz_z")
 problem.add_equation("dx(u) + dy(v) + dz(w) = 0",condition="(nx != 0) or (ny != 0) or (nz !=0 )")
 problem.add_equation("p = 0",condition="(nx == 0) and (ny == 0) and (nz == 0)")
-# Magnetic
-problem.add_equation("dt(Ax) - RmInv*Lap(Ax) + dx(phi) = Bz*v - By*w")
-problem.add_equation("dt(Ay) - RmInv*Lap(Ay) + dy(phi) = Bx*w - Bz*u")
-problem.add_equation("dt(Az) - RmInv*Lap(Az) + dz(phi) = By*u - Bx*v")
-problem.add_equation("dx(Ax) + dy(Ay) + dz(Az) = 0",condition="(nx != 0) or (ny != 0) or (nz !=0 )")
-problem.add_equation("phi = 0",condition="(nx == 0) and (ny == 0) and (nz == 0)")
+
+if(not U1):
+    # Magnetic
+    problem.add_equation("dt(Ax) - RmInv*Lap(Ax) + dx(phi) = Bz*v - By*w")
+    problem.add_equation("dt(Ay) - RmInv*Lap(Ay) + dy(phi) = Bx*w - Bz*u")
+    problem.add_equation("dt(Az) - RmInv*Lap(Az) + dz(phi) = By*u - Bx*v")
+    problem.add_equation("dx(Ax) + dy(Ay) + dz(Az) = 0",condition="(nx != 0) or (ny != 0) or (nz !=0 )")
+    problem.add_equation("phi = 0",condition="(nx == 0) and (ny == 0) and (nz == 0)")
 
 ts = de.timesteppers.RK443
 solver =  problem.build_solver(ts)

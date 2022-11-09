@@ -17,6 +17,10 @@ class particles:
         self.initialisePositions()
         self.fluids_vel = np.zeros((self.N,self.dim))
 
+        self.J = np.zeros((self.N,self.dim,self.dim))
+        self.initialiseStress()
+        self.S = np.zeros((self.N,self.dim,self.dim))
+
         meshShape = domain.distributor.mesh.shape[0]
         # Be fancy and make new comms
         if(size>1):

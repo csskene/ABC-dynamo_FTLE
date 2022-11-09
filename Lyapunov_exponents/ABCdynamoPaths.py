@@ -13,7 +13,7 @@ Options:
     --resl=<resl>                     Resolution [default: 64]
     --mesh=<mesh>                     Processor mesh for 3-D runs
     --restart_file=<restart_file>     Location of restart file
-    --restartN=<restartN>             Restart number for paths
+    --restartN=<restartN>             Restart number for paths [default: -1]
     --N=<N>                           Number of particles in each direction [default: 128]
     --U1                              Whether to zero the magnetic field
 """
@@ -132,7 +132,7 @@ v = solver.state['v']
 w = solver.state['w']
 
 try:
-    write, last_dt = solver.load_state_partial(restart_file, restartN)
+    write, last_dt = load_state_partial(solver,restart_file, restartN)
 except:
     logger.info('Wrong file name. Make sure you run a non-linear simmulation to get restart states first')
     raise
@@ -152,10 +152,10 @@ cfl.add_velocities(('u','v','w'))
 # Initiate particles
 particles = particles.particles(N**2,domain)
 # Rewrite initial positions with equispaced locations
-n = int(np.sqrt(particleTracker.N))
-xn = np.linspace(0,particleTracker.coordLength[0],n+1)[:-1]
-yn = np.linspace(0,particleTracker.coordLength[1],n+1)[:-1]
-particleTracker.positions = np.array([(xn[i],yn[j]) for i in range(n) for j in range(n)])
+n = int(np.sqrt(particles.N))
+xn = np.linspace(0,particles.coordLength[0],n+1)[:-1]
+yn = np.linspace(0,particles.coordLength[1],n+1)[:-1]
+particles.positions = np.array([(xn[i],yn[j],0) for i in range(n) for j in range(n)])
 
 # To Save memory must perform some of the FTLE calculation here
 lya = []

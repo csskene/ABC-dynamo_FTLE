@@ -135,7 +135,7 @@ xn += dx/2.
 yn = np.linspace(0,particleTracker.coordLength[1],n+1)[:-1]
 dy = yn[1]-yn[0]
 yn += dy/2.
-particleTracker .positions = np.array([(xn[i],yn[j]) for i in range(n) for j in range(n)])
+particleTracker.positions = np.array([(xn[i],yn[j]) for i in range(n) for j in range(n)])
 
 locs = []
 pos = copy.copy(particleTracker.positions)

@@ -19,13 +19,13 @@ Options:
 """
 
 import numpy as np
-import h5py
 import time
 
 from mpi4py import MPI
 from dedalus import public as de
 from dedalus.extras import flow_tools
 import os
+from tools import load_state_partial
 import sys
 
 sys.path.append('../particle_tracker/')
@@ -132,7 +132,7 @@ v = solver.state['v']
 w = solver.state['w']
 
 try:
-    write, last_dt = solver.load_state(restart_file, restartN)
+    write, last_dt = solver.load_state_partial(restart_file, restartN)
 except:
     logger.info('Wrong file name. Make sure you run a non-linear simmulation to get restart states first')
     raise
@@ -175,7 +175,7 @@ while solver.ok:
     lya.append(np.log(np.einsum('kii->k',C)/2.)/2.)
     times.append(solver.sim_time)
 
-    if solver.iteration % 10 == 0:
+    if (solver.iteration-1) % 10 == 0:
         logger.info('Iteration: %i, Time: %e, dt: %e' %(solver.iteration, solver.sim_time, dt))
 
 end_time = time.time()

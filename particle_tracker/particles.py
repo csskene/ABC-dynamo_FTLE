@@ -118,3 +118,24 @@ class particles:
             if(type(self.basis_objects[coord]).__name__=='Chebyshev'):
                 # Non-periodic boundary conditions
                 self.positions[:,coord] = np.clip(self.positions[:,coord], self.coordBoundaries[coord][0], self.coordBoundaries[coord][1])
+
+    def initialiseStress(self):
+
+        for particle in range(self.N):
+            self.J[particle,0,0] = 1./np.sqrt(2)
+            self.J[particle,1,1] = 1./np.sqrt(2)
+
+    def getFluidStress(self,velocities):
+        # Check
+        assert(len(velocities)==self.dim)
+
+        for coordi in range(self.dim):
+            for coordj in range(self.dim):
+                diff_op = self.basis_objects[coordj].Differentiate(velocities[coordi])
+                self.S[:,coordi,coordj] = self.interpolate_3D(diff_op, self.positions[:,0], self.positions[:,1],self.positions[:,2])
+
+    def stepStress(self,dt,velocities):
+        self.getFluidStress(velocities)
+        # Move stress
+        for particle in range(self.N):
+             self.J[particle,:,:] += dt*self.S[particle,:,:]@self.J[particle,:,:]

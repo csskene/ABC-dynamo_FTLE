@@ -2,7 +2,7 @@
 Companion code for the paper 'TBC'
 
 Code structure
-1. FTLE - Julia code to calculate the FTLEs for given flow profiles.
+1. FTLE_kinematic - Julia code to calculate the FTLEs for given flow profiles.
 2. Floquet - Dedalus v3 code to calculate the Floquet exponents and mu
 3. particles - Module for Dedalus v2 that allows for quick interpolation of velocities at particle positions and particle tracking.
 4.  Lyapunov exponents - Dedalus v2 code to solve for time-dependent ABC flows. Also allows for the FTLE exponents to be calculated using the particle tracking module.

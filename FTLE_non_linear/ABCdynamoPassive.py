@@ -213,7 +213,7 @@ snapshots.add_task("Blx")
 snapshots.add_task("Bly")
 snapshots.add_task("Blz")
 
-cfl = flow_tools.CFL(solver,initial_dt,safety=0.8,cadence=10)
+cfl = flow_tools.CFL(solver,initial_dt,safety=0.8)
 cfl.add_velocities(('u','v','w'))
 
 logger.info('Starting loop')
@@ -222,7 +222,7 @@ while solver.ok:
     dt = cfl.compute_dt()
     solver.step(dt)
 
-    if (solver.iteration-1) % 10 == 0:
+    if (solver.iteration-1) % 1000 == 0:
         logger.info('Iteration: %i, Time: %e, dt: %e' %(solver.iteration, solver.sim_time, dt))
 
 end_time = time.time()

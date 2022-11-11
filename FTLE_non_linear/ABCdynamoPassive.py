@@ -155,6 +155,11 @@ solver.stop_iteration = np.inf
 initial_dt = last_dt
 
 logger.info('Seeding passive field with a small random magnetic')
+
+
+Alx = solver.state['Alx']
+Aly = solver.state['Aly']
+Alz = solver.state['Alz']
 # Seed the magnetic field with a small random field
 Alx.set_scales(1)
 Aly.set_scales(1)

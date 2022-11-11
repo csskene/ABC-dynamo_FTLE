@@ -230,3 +230,6 @@ end_time = time.time()
 # Print statistics
 logger.info('Run time: %f' %(end_time-start_time))
 logger.info('Iterations: %i' %solver.iteration)
+
+from dedalus.tools import post
+post.merge_process_files(os.path.join('data/',pathstr,'analysis_passive'), cleanup=True)

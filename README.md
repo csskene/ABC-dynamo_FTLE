@@ -3,7 +3,7 @@ This repository contains companion code for the paper 'Floquet stability and Lag
 
 Code structure
 1. FTLE_kinematic - Julia code to calculate the FTLEs for given flow profiles.
-2. Floquet - Dedalus v3 code to calculate the Floquet exponents and mu
+2. Floquet - Dedalus v3 code to calculate the Floquet exponents.
 3. particle_tracker - Module for Dedalus v2 that allows for quick interpolation of velocities at particle positions and particle tracking.
 4. FTLE_non_linear - Dedalus v2 code to solve for time-dependent ABC flows. Also allows for the FTLE exponents to be calculated using the particle tracking module.
 

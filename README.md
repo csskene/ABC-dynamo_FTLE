@@ -1,5 +1,5 @@
-# ABC-dynamo
-Companion code for the paper 'Floquet stability and Lagrangian statistics of a non-linear time-dependent ABC dynamo' (in review 2023)
+# Floquet stability and Lagrangian statistics of a non-linear time-dependent ABC dynamo (companion code)
+This repository contains companion code for the paper 'Floquet stability and Lagrangian statistics of a non-linear time-dependent ABC dynamo' by C. S. Skene and S. M. Tobias (in review 2023).
 
 Code structure
 1. FTLE_kinematic - Julia code to calculate the FTLEs for given flow profiles.

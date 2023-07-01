@@ -55,9 +55,9 @@ class particles:
 
         if(xc[0]==0):
             C[0,:,:] *= 0.5
-        D = np.einsum('ijk,lk,lj,li->li',C,zi,yi,xi)
+        D = np.einsum('ijk,lk,lj,li->li',C,zi,yi,xi,optimize=True)
         D = self.row_comm.allreduce(D)
-        D = np.einsum('li->l',D)
+        D = np.einsum('li->l',D,optimize=True)
         D = self.col_comm.allreduce(D)
         I = 2*np.real(D)
 
@@ -82,8 +82,8 @@ class particles:
 
         if(xc[0]==0):
             C[0,:] *= 0.5
-        D = np.einsum('ij,lj,li->li',C,yi,xi)
-        D = np.einsum('li->l',D)
+        D = np.einsum('ij,lj,li->li',C,yi,xi,optimize=True)
+        D = np.einsum('li->l',D,optimize=True)
         D = comm.allreduce(D)
         I = 2*np.real(D)
 

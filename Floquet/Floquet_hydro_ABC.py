@@ -99,7 +99,7 @@ sinyzx ['g'][1]  = np.sin(z)
 sinyzx ['g'][2]  = np.sin(x)
 
 u0 = sinzxy*np.cos(epsilon*np.sin(Ω*t)) + coszxy*np.sin(epsilon*np.sin(Ω*t)) +\
-cosyzx*np.cos(epsilon*np.sin(Ω*t)) - sinyzx*np.sin(epsilon*np.sin(Ω*t))
+     cosyzx*np.cos(epsilon*np.sin(Ω*t)) - sinyzx*np.sin(epsilon*np.sin(Ω*t))
 
 problem = d3.IVP([p, u,tau_p], time=t, namespace=locals())
 problem.add_equation("dt(u)  + grad(p) - 1/Re*lap(u) = -dot(u0,grad(u))-dot(u,grad(u0))")
@@ -138,7 +138,7 @@ def fieldToVec(solver):
     return vec
 
 def monodromyMult(q0):
-
+    problem.time['g'] = 0 # Reset time
     solver = problem.build_solver(d3.RK443)
     solver.stop_sim_time = 2*π/Ω
 

@@ -1,6 +1,6 @@
 [![DOI](https://zenodo.org/badge/510360742.svg)](https://zenodo.org/badge/latestdoi/510360742)
 
-# Floquet stability and Lagrangian statistics of a non-linear time-dependent ABC dynamo (companion code)
+# Floquet stability and Lagrangian statistics of a nonlinear time-dependent ABC dynamo (companion code)
 This repository contains companion code for the paper 'Floquet stability and Lagrangian statistics of a non-linear time-dependent ABC dynamo' by C. S. Skene and S. M. Tobias (Phys. Rev. Fluids in press 2023).
 
 Code structure

@@ -13,7 +13,7 @@ Code structure
 If you find this repository useful for your research please cite the following paper
 ```
 @article{skene_tobias_2023, 
-  title={Floquet stability and Lagrangian statistics of a non-linear time-dependent {ABC} dynamo}, 
+  title={Floquet stability and Lagrangian statistics of a nonlinear time-dependent {ABC} dynamo}, 
   journal={Phys. Rev. Fluids}, 
   author={Skene, Calum S. and Tobias, Steven M.}, 
   year={2023},

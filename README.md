@@ -1,7 +1,7 @@
 [![DOI](https://zenodo.org/badge/510360742.svg)](https://zenodo.org/badge/latestdoi/510360742)
 
 # Floquet stability and Lagrangian statistics of a nonlinear time-dependent ABC dynamo (companion code)
-This repository contains companion code for the paper 'Floquet stability and Lagrangian statistics of a non-linear time-dependent ABC dynamo' by C. S. Skene and S. M. Tobias (Phys. Rev. Fluids in press 2023).
+This repository contains companion code for the paper 'Floquet stability and Lagrangian statistics of a nonlinear time-dependent ABC dynamo' by C. S. Skene and S. M. Tobias [Phys. Rev. Fluids, 2023](https://link.aps.org/doi/10.1103/PhysRevFluids.8.083701).
 
 Code structure
 1. FTLE_kinematic - Julia code to calculate the FTLEs for given flow profiles.
@@ -12,13 +12,20 @@ Code structure
 # Citing the code
 If you find this repository useful for your research please cite the following paper
 ```
-@article{skene_tobias_2023, 
-  title={Floquet stability and Lagrangian statistics of a nonlinear time-dependent {ABC} dynamo}, 
-  journal={Phys. Rev. Fluids}, 
-  author={Skene, Calum S. and Tobias, Steven M.}, 
-  year={2023},
-  notes={in press}
-  }
+@article{Skene2023,
+  title = {Floquet stability and Lagrangian statistics of a nonlinear time-dependent ABC dynamo},
+  author = {Skene, Calum S. and Tobias, Steven M.},
+  journal = {Phys. Rev. Fluids},
+  volume = {8},
+  issue = {8},
+  pages = {083701},
+  numpages = {19},
+  year = {2023},
+  month = {Aug},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevFluids.8.083701},
+  url = {https://link.aps.org/doi/10.1103/PhysRevFluids.8.083701}
+}
 ```
 ## Acknowledgements
 

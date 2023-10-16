@@ -173,7 +173,7 @@ finally:
 
     locs = np.array(locs)
     locs = np.transpose(locs,axes=(1,0,2))
-    print(locs.shape)
+    
     if(rank==0):
         np.save('rbLocs',locs)
         np.save('rbTimes',times)

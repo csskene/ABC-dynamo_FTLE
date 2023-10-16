@@ -34,58 +34,71 @@ class particles:
             self.row_comm = domain.dist.comm_cart.Sub([])
             self.col_comm = domain.dist.comm_cart.Sub([])
 
-    def interpolate_3D(self,F, xp, yp, zp):
+        # Work out if there are Fourier directions, and which is first
+        num_Fourier_directions = 0
+        first_Fourier_direction = 4
+        for coord in range(self.dim):
+            if(type(self.basis_objects[coord]).__name__=='Fourier'):
+                num_Fourier_directions += 1
+                if(first_Fourier_direction==4):
+                    first_Fourier_direction = coord
+        self.num_Fourier_directions = num_Fourier_directions
+        self.first_Fourier_direction = first_Fourier_direction
+
+    def interpolate(self,F, locations):
+
+        assert(len(locations)==self.dim)
         # Based on code in the Dedalus users group
         domain = F.domain
-
         C = F['c'].copy()
 
-        xc = np.squeeze(domain.elements(0))
-        yc = np.squeeze(domain.elements(1))
-        zc = np.squeeze(domain.elements(2))
+        prod_list = []
+        for coord in range(self.dim):
+            coord_elements = np.squeeze(domain.elements(coord))
+            if(type(self.basis_objects[coord]).__name__=='Fourier'):
+                left = self.coordBoundaries[coord][0]
+                zi = np.array([np.exp(1j*coord_elements*(zs-left)) for zs in locations[coord]])
+            elif(type(self.basis_objects[coord]).__name__=='Chebyshev'):
+                Lz = self.coordLength[coord]
+                left = self.coordBoundaries[coord][0]
+                zi = np.array([np.cos(coord_elements*np.arccos(2*(zs-left)/Lz-1)) for zs in locations[coord]])
+            elif(type(self.basis_objects[coord]).__name__=='SinCos'):
+                left = self.coordBoundaries[coord][0]
+                parity = F.meta[coord]['parity']
+                if(parity==1):
+                    zi = np.array([np.cos(coord_elements*(zs-left)) for zs in locations[coord]])
+                else:
+                    zi = np.array([np.sin(coord_elements*(zs-left)) for zs in locations[coord]])
+            prod_list.append(zi)
 
-        xi = np.array([np.exp(1j*xc*xs) for xs in xp])
-        yi = np.array([np.exp(1j*yc*ys) for ys in yp])
-        if(type(self.basis_objects[-1]).__name__=='Fourier'):
-            zi = np.array([np.exp(1j*zc*zs) for zs in zp])
-        elif(type(self.basis_objects[-1]).__name__=='Chebyshev'):
-            Lz = self.coordLength[2]
-            left = self.coordBoundaries[2][0]
-            zi = np.array([np.cos(zc*np.arccos(2*(zs-left)/Lz-1)) for zs in zp])
-
-        if(xc[0]==0):
-            C[0,:,:] *= 0.5
-        D = np.einsum('ijk,lk,lj,li->li',C,zi,yi,xi,optimize=True)
-        D = self.row_comm.allreduce(D)
-        D = np.einsum('li->l',D,optimize=True)
-        D = self.col_comm.allreduce(D)
-        I = 2*np.real(D)
-
-        return I
-
-    def interpolate_2D(self,F, xp, yp):
-        # Based on code in the Dedalus users group
-        domain = F.domain
-
-        C = F['c'].copy()
-
-        xc = np.squeeze(domain.elements(0))
-        yc = np.squeeze(domain.elements(1))
-
-        xi = np.array([np.exp(1j*xc*xs) for xs in xp])
-        if(type(self.basis_objects[-1]).__name__=='Fourier'):
-            yi = np.array([np.exp(1j*yc*ys) for ys in yp])
-        elif(type(self.basis_objects[-1]).__name__=='Chebyshev'):
-            Lz = self.coordLength[-1]
-            left = self.coordBoundaries[-1][0]
-            yi = np.array([np.cos(yc*np.arccos(2*(ys-left)/Lz-1)) for ys in yp])
-
-        if(xc[0]==0):
-            C[0,:] *= 0.5
-        D = np.einsum('ij,lj,li->li',C,yi,xi,optimize=True)
-        D = np.einsum('li->l',D,optimize=True)
-        D = comm.allreduce(D)
-        I = 2*np.real(D)
+        if(self.dim==3):
+            if(self.num_Fourier_directions>0):
+                if(self.first_Fourier_direction==0 and np.squeeze(domain.elements(0))[0]==0):
+                    C[0,:,:] *= 0.5
+                if(self.first_Fourier_direction==1 and np.squeeze(domain.elements(1))[0]==0):
+                    C[:,0,:] *= 0.5
+                if(self.first_Fourier_direction==2 and np.squeeze(domain.elements(2))[0]==0):
+                    C[:,:,0] *= 0.5
+            D = np.einsum('ijk,lk,lj,li->li',C,prod_list[2],prod_list[1],prod_list[0],optimize=True)
+            D = self.row_comm.allreduce(D)
+            D = np.einsum('li->l',D,optimize=True)
+            D = self.col_comm.allreduce(D)
+            if(self.num_Fourier_directions>0):
+                I = 2*np.real(D)
+            else:
+                I = np.real(D)
+        elif(self.dim==2):
+            if(self.num_Fourier_directions>0):
+                if(self.first_Fourier_direction==0 and np.squeeze(domain.elements(0))[0]==0):
+                    C[0,:] *= 0.5
+                if(self.first_Fourier_direction==1 and np.squeeze(domain.elements(1))[0]==0):
+                    C[:,0] *= 0.5
+            D = np.einsum('ij,lj,li->l',C,prod_list[1],prod_list[0],optimize=True)
+            D = comm.allreduce(D)
+            if(self.num_Fourier_directions>0):
+                I = 2*np.real(D)
+            else:
+                I = np.real(D)
 
         return I
 
@@ -105,9 +118,9 @@ class particles:
         assert(len(velocities)==self.dim)
         for coord in range(self.dim):
             if(self.dim==3):
-                self.fluids_vel[:,coord] = self.interpolate_3D(velocities[coord], self.positions[:,0], self.positions[:,1],self.positions[:,2])
+                self.fluids_vel[:,coord] = self.interpolate(velocities[coord], (self.positions[:,0], self.positions[:,1],self.positions[:,2]))
             elif(self.dim==2):
-                self.fluids_vel[:,coord] = self.interpolate_2D(velocities[coord], self.positions[:,0], self.positions[:,1])
+                self.fluids_vel[:,coord] = self.interpolate(velocities[coord], (self.positions[:,0], self.positions[:,1]))
 
     def step(self,dt,velocities):
         self.getFluidVel(velocities)
@@ -116,7 +129,7 @@ class particles:
         self.positions += dt*self.fluids_vel
         # Apply BCs on the particle positions
         for coord in range(self.dim):
-            if(type(self.basis_objects[coord]).__name__=='Fourier'):
+            if(type(self.basis_objects[coord]).__name__=='Fourier' or type(self.basis_objects[coord]).__name__=='SinCos'):
                 # Periodic boundary conditions
                 self.positions[:,coord] = self.coordBoundaries[coord][0]+np.mod(self.positions[:,coord]-self.coordBoundaries[coord][0],self.coordLength[coord])
             if(type(self.basis_objects[coord]).__name__=='Chebyshev'):
@@ -136,7 +149,7 @@ class particles:
         for coordi in range(self.dim):
             for coordj in range(self.dim):
                 diff_op = self.basis_objects[coordj].Differentiate(velocities[coordi])
-                self.S[:,coordi,coordj] = self.interpolate_3D(diff_op, self.positions[:,0], self.positions[:,1],self.positions[:,2])
+                self.S[:,coordi,coordj] = self.interpolate(diff_op, self.positions[:,0], self.positions[:,1],self.positions[:,2])
 
     def stepStress(self,dt,velocities):
         self.getFluidStress(velocities)
